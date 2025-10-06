@@ -1,3 +1,90 @@
+Arctic Sea Ice Decline — Quadratic OU Model
+🌍 Scientific Context
+Arctic sea ice is a critical indicator of climate change. September, the month of the annual minimum, is particularly important for monitoring long-term trends. This project uses data from the NSIDC Sea Ice Index (NSIDC-0051), focusing on September monthly extent values from 1979 to the present.
+
+The goal is to model and project the decline of Arctic sea ice using a quadratic Ornstein–Uhlenbeck (OU) process, which combines a deterministic drift (long-term trend) with stochastic variability (natural fluctuations).
+
+🧮 Main Script: seaice_ou_quadratic.py
+Implements a quadratic drift function calibrated on historical data.
+
+Simulates multiple OU trajectories of normalized September sea ice extent (φ*).
+
+Extracts the year when the extent falls below the critical threshold φ < 0.5*.
+
+Produces a figure combining:
+
+Observed September values (black dots)
+
+Simulated trajectories (blue lines)
+
+Thresholds (red/orange dashed lines)
+
+Histogram of crossing years with the median year highlighted.
+
+📊 Main Result
+The central projection indicates a median September crossing year around 2035–2036, with variability of ±3–4 years depending on stochastic noise.
+
+Figure:
+
+🔀 Comparative Script: seaice_ou_compare.py
+This variant contrasts:
+
+Deterministic trajectory (D=0) → a single smooth decline, crossing ~2036.
+
+Stochastic trajectories (D>0) → an ensemble of possible futures, showing uncertainty around the central trend.
+
+Figure:
+
+🎛 Interactive Exploration
+The notebook notebooks/interactive_sliders.ipynb allows interactive exploration of model parameters:
+
+γ (gamma) → speed of mean reversion.
+
+D → intensity of stochastic variability.
+
+Sliders let you visualize how these parameters affect the timing and spread of threshold crossings.
+
+🔁 Reproducibility
+All components are included for full transparency and reproducibility:
+
+Data:
+
+data/N_09_extent_v4.0.csv (NSIDC September extent data)
+
+Scripts:
+
+code/seaice_ou_quadratic.py (main model)
+
+code/seaice_ou_compare.py (deterministic vs stochastic)
+
+Figures:
+
+figures/synthese.png (main result)
+
+figures/compare.png (comparative result)
+
+Results:
+
+results/crossings.csv (list of crossing years + median)
+
+How to Run
+bash
+# Clone the repository
+git clone https://github.com/FindPrint/Multiple-studies.git
+cd Multiple-studies
+
+# Run the main script
+python code/seaice_ou_quadratic.py
+
+# Run the comparative script
+python code/seaice_ou_compare.py
+Both scripts will generate figures in the figures/ directory.
+
+📌 Citation
+If you use this work, please cite the NSIDC Sea Ice Index (NSIDC-0051) dataset and reference this repository.
+
+👉 Would you like me to also prepare a shorter, public-facing README (more visual, less technical) that you could use as a “front page” for non-specialists, while keeping this detailed one for scientific audiences?
+
 ```markdown
 # 🧊 Déclin de la banquise arctique en septembre (OU + drift quadratique)
 
@@ -32,26 +119,4 @@ Nos simulations montrent que ce basculement devrait se produire autour de **2035
 
 Ce résultat est cohérent avec les prévisions des grands organismes scientifiques comme le **GIEC** ou le **NSIDC**, qui annoncent eux aussi une première occurrence entre 2030 et 2050. La figure que nous présentons est pédagogique : elle montre à la fois la tendance centrale (2035) et la variabilité naturelle du climat. Elle rappelle que, même si l’année exacte reste incertaine, la direction est claire : la glace disparaît rapidement, et cela aura des conséquences majeures pour le climat mondial, les écosystèmes et les sociétés humaines.  
 
-
-
-```
-
----
-
-## 🚀 Utilisation
-
-1. Cloner le dépôt :  
-   ```bash
-   git clone https://github.com/FindPrint/seaice-september-OU.git
-   cd seaice-september-OU/code
-   ```
-
-2. Lancer le script Python ou notebook pour reproduire les figures.  
-
----
-
-✍️ *Ce dépôt est volontairement minimaliste : il vise à montrer, de façon transparente et reproductible, comment un modèle simple peut éclairer une question climatique majeure.*
-```
-
----
 
