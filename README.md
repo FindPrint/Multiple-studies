@@ -32,19 +32,7 @@ Nos simulations montrent que ce basculement devrait se produire autour de **2035
 
 Ce résultat est cohérent avec les prévisions des grands organismes scientifiques comme le **GIEC** ou le **NSIDC**, qui annoncent eux aussi une première occurrence entre 2030 et 2050. La figure que nous présentons est pédagogique : elle montre à la fois la tendance centrale (2035) et la variabilité naturelle du climat. Elle rappelle que, même si l’année exacte reste incertaine, la direction est claire : la glace disparaît rapidement, et cela aura des conséquences majeures pour le climat mondial, les écosystèmes et les sociétés humaines.  
 
----
 
-Multiple-studies/
-│
-├── code/
-│   └── seaice_ou_quadratic.py   # ton script Python minimal
-│
-├── figures/                     # pour stocker tes graphiques exportés
-│   └── synthese.png
-│
-├── README.md                    # texte explicatif (scientifique + vulgarisé)
-│
-└── LICENSE                      # (MIT ou CC-BY)
 
 ```
 
@@ -67,4 +55,3 @@ Multiple-studies/
 
 ---
 
-👉 Veux-tu que je t’aide aussi à transformer ton fichier `.txt` de cellules en un **script Python propre (`seaice_ou_quadratic.py`)** prêt à mettre dans le dossier `code/` ?
