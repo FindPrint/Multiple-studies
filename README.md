@@ -42,7 +42,7 @@ Ce résultat est cohérent avec les prévisions des grands organismes scientifiq
 
 1. Cloner le dépôt :  
    ```bash
-   git clone https://github.com/<ton-user>/seaice-september-OU.git
+   git clone https://github.com/FindPrint/seaice-september-OU.git
    cd seaice-september-OU/code
    ```
 
