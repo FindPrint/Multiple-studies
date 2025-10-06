@@ -6,7 +6,7 @@ Simulation du déclin de la banquise arctique en septembre
 à l'aide d'un processus d'Ornstein–Uhlenbeck (OU) avec drift quadratique.
 
 Étapes :
-1. Charger les données NSIDC (CSV avec colonnes : year, mo, extent, area).
+1. Charger les données NSIDC (N_09_extent_v4.0.csv).
 2. Normaliser par rapport à la climatologie 1981–2010.
 3. Définir le drift quadratique μ(t) avec coefficients calibrés.
 4. Simuler 20 trajectoires OU jusqu'en 2050.
@@ -24,11 +24,10 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # -----------------------------
 # 1. Charger les données NSIDC
 # -----------------------------
-# ⚠️ Assurez-vous d'avoir un fichier 'nsidc_seaice.csv' avec colonnes year, mo, extent, area
-data = pd.read_csv("nsidc_seaice.csv")
-
-# Nettoyage
+data = pd.read_csv("N_09_extent_v4.0.csv")
 data.columns = data.columns.str.strip()
+
+# Garder uniquement les colonnes utiles
 data = data[["year", "mo", "extent", "area"]].copy()
 data["date"] = pd.to_datetime(dict(year=data["year"], month=data["mo"], day=1))
 
@@ -40,9 +39,9 @@ data["phi_star"] = data["extent"] / clim
 # 2. Paramètres du modèle OU
 # -----------------------------
 a, b, c = 1.1945, -0.000955, -0.000000033  # coefficients quadratiques
-gamma = 0.13
-D = 0.00020
-n_sims = 20
+gamma = 0.13   # vitesse de rappel
+D = 0.00020    # intensité du bruit
+n_sims = 20    # nombre de trajectoires
 
 # Horizon temporel : 1979–2050
 n_steps = (2050 - 1979) * 12
@@ -79,7 +78,7 @@ for sim in simulations:
     below = sept[sept < threshold]
     crossing_years.append(below.index[0] if not below.empty else None)
 
-valid_years = [y for y in crossing_years if y is not None]
+valid_years = [int(y) for y in crossing_years if y is not None]
 median_year = int(np.median(valid_years)) if valid_years else None
 
 print("Années de franchissement :", crossing_years)
