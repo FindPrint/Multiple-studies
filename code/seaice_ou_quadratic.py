@@ -12,9 +12,10 @@ Simulation du déclin de la banquise arctique en septembre
 4. Simuler 20 trajectoires OU jusqu'en 2050.
 5. Extraire les minima de septembre.
 6. Calculer l'année médiane de franchissement du seuil φ* < 0.5.
-7. Produire une figure de synthèse (observations + simulations + histogramme).
+7. Produire et sauvegarder une figure de synthèse.
 """
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -119,4 +120,10 @@ if valid_years:
     ax_inset.legend()
 
 plt.tight_layout()
+
+# -----------------------------
+# 6. Sauvegarde automatique
+# -----------------------------
+os.makedirs("../figures", exist_ok=True)
+plt.savefig("../figures/synthese.png", dpi=300)
 plt.show()
