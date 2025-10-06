@@ -34,17 +34,18 @@ Ce résultat est cohérent avec les prévisions des grands organismes scientifiq
 
 ---
 
-## 📂 Structure du dépôt
-
-```
-seaice-september-OU/
+Multiple-studies/
 │
 ├── code/
-│   └── seaice_ou_quadratic.py   # code de simulation et visualisation
+│   └── seaice_ou_quadratic.py   # ton script Python minimal
 │
-├── README.md                    # ce fichier
+├── figures/                     # pour stocker tes graphiques exportés
+│   └── synthese.png
 │
-└── LICENSE                      # optionnel (ex. MIT)
+├── README.md                    # texte explicatif (scientifique + vulgarisé)
+│
+└── LICENSE                      # (MIT ou CC-BY)
+
 ```
 
 ---
