@@ -1,0 +1,277 @@
+!git clone https://github.com/FindPrint/Multiple-studies.git
+%cd Multiple-studies
+
+
+!pip install seaborn
+
+
+from google.colab import files
+
+# Uploader ton script et ton CSV
+uploaded = files.upload()
+
+
+from google.colab import files
+
+# Uploader ton script et ton CSV
+uploaded = files.upload()
+
+
+!mkdir -p code data figures
+!mv seaice_ou_quadratic.py code/
+!mv N_09_extent_v4.0.csv data/
+
+
+data = pd.read_csv("../data/N_09_extent_v4.0.csv")
+
+
+# 1. Importer les librairies
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 2. Charger ton fichier CSV
+data = pd.read_csv("../data/N_09_extent_v4.0.csv")
+
+# 3. Vérifier les premières lignes
+print(data.head())
+
+
+data = pd.read_csv("data/N_09_extent_v4.0.csv")
+
+
+import os
+import pandas as pd
+import urllib.request
+
+# Nom du fichier attendu
+filename = "N_09_extent_v4.0.csv"
+
+# URL brute GitHub (⚠️ assure-toi que le fichier est bien poussé dans /data/ sur ton dépôt)
+github_url = "https://raw.githubusercontent.com/FindPrint/Multiple-studies/main/data/N_09_extent_v4.0.csv"
+
+# Vérifier si le fichier existe déjà localement
+if not os.path.exists(filename):
+    print("Fichier non trouvé localement. Téléchargement depuis GitHub...")
+    urllib.request.urlretrieve(github_url, filename)
+    print("Téléchargement terminé.")
+else:
+    print("Fichier trouvé localement.")
+
+# Charger le CSV avec pandas
+data = pd.read_csv(filename)
+
+# Afficher les 5 premières lignes pour vérifier
+print(data.head())
+
+
+!python code/seaice_ou_quadratic.py
+
+
+# 📦 Imports nécessaires
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from ipywidgets import interact, FloatSlider
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+# 🔹 Charger les données NSIDC (septembre uniquement)
+url = "https://raw.githubusercontent.com/FindPrint/Multiple-studies/main/data/N_09_extent_v4.0.csv"
+data = pd.read_csv(url)
+data.columns = data.columns.str.strip()
+data = data[["year", "mo", "extent", "area"]].copy()
+data["date"] = pd.to_datetime(dict(year=data["year"], month=data["mo"], day=1))
+
+# 🔹 Normalisation par rapport à la climatologie 1981–2010
+clim = data[(data["year"] >= 1981) & (data["year"] <= 2010)]["extent"].mean()
+data["phi_star"] = data["extent"] / clim
+
+# 🔹 Fonction interactive
+@interact(
+    gamma=FloatSlider(value=0.13, min=0.05, max=0.3, step=0.01, description="γ (rappel)"),
+    D=FloatSlider(value=0.0002, min=0.00005, max=0.001, step=0.00005, description="D (bruit)")
+)
+def simulate_ou(gamma, D):
+    # Paramètres du drift quadratique
+    a, b, c = 1.1945, -0.000955, -0.000000033
+    n_sims = 20
+    n_steps = (2050 - 1979) * 12
+    t = np.arange(n_steps)
+    dates = pd.date_range("1979-01-01", periods=n_steps, freq="MS")
+    mu_t = a + b * t + c * t**2
+
+    # Simulations OU
+    simulations, sim_sept, crossing_years = [], [], []
+    for s in range(n_sims):
+        phi = np.zeros(n_steps)
+        phi[0] = 1.0
+        for k in range(1, n_steps):
+            phi[k] = phi[k-1] - gamma * (phi[k-1] - mu_t[k]) + np.sqrt(2*D) * np.random.randn()
+        simulations.append(phi)
+
+        sim_df = pd.DataFrame({"date": dates, "phi": phi})
+        sim_df["month"] = sim_df["date"].dt.month
+        sim_df["year"] = sim_df["date"].dt.year
+        sept = sim_df[sim_df["month"] == 9].groupby("year")["phi"].mean()
+        sim_sept.append(sept)
+        below = sept[sept < 0.5]
+        crossing_years.append(below.index[0] if not below.empty else None)
+
+    valid_years = [y for y in crossing_years if y is not None]
+    median_year = int(np.median(valid_years)) if valid_years else None
+
+    # 🔹 Figure
+    plt.figure(figsize=(14, 7))
+    sept_obs = data[data["mo"] == 9]
+    plt.scatter(sept_obs["date"], sept_obs["phi_star"], color="black", label="Observé (septembre)")
+
+    for sept in sim_sept:
+        plt.plot(sept.index, sept.values, alpha=0.4, color="steelblue")
+
+    plt.axhline(1.0, color="red", linestyle="--", label="Climatologie")
+    plt.axhline(0.5, color="orange", linestyle="--", label="Seuil critique 0.5")
+
+    plt.title(f"Banquise Arctique — OU quadratique (γ={gamma}, D={D})")
+    plt.xlabel("Année")
+    plt.ylabel("φ*(t) en septembre")
+    plt.legend()
+    plt.grid(True)
+
+    if valid_years:
+        ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="upper right")
+        sns.histplot(valid_years, bins=range(min(valid_years), max(valid_years)+1),
+                     ax=ax_inset, color="skyblue", edgecolor="black")
+        ax_inset.axvline(median_year, color="red", linestyle="--", label=f"Médiane {median_year}")
+        ax_inset.set_title("Distribution des franchissements")
+        ax_inset.set_xlabel("Année")
+        ax_inset.set_ylabel("Fréquence")
+        ax_inset.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+    if median_year:
+        print(f"Année médiane de franchissement : {median_year}")
+
+
+"""
+Comparaison entre trajectoire déterministe (D=0) et stochastiques (D>0)
+pour le déclin de la banquise arctique en septembre.
+
+- Drift quadratique μ(t)
+- Simulation OU avec et sans bruit
+- Extraction des minima de septembre
+- Calcul de l'année médiane de franchissement du seuil φ* < 0.5
+- Figure de synthèse
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+# -----------------------------
+# 1. Charger les données NSIDC
+# -----------------------------
+url = "https://raw.githubusercontent.com/FindPrint/Multiple-studies/main/data/N_09_extent_v4.0.csv"
+data = pd.read_csv(url)
+data.columns = data.columns.str.strip()
+data = data[["year", "mo", "extent"]].copy()
+data["date"] = pd.to_datetime(dict(year=data["year"], month=data["mo"], day=1))
+
+# Normalisation par rapport à la climatologie 1981–2010
+clim = data[(data["year"] >= 1981) & (data["year"] <= 2010)]["extent"].mean()
+data["phi_star"] = data["extent"] / clim
+
+# -----------------------------
+# 2. Paramètres du modèle OU
+# -----------------------------
+a, b, c = 1.1945, -0.000955, -0.000000033
+gamma = 0.13
+D_stoch = 0.0002   # bruit pour les trajectoires stochastiques
+n_sims = 20
+
+n_steps = (2050 - 1979) * 12
+t = np.arange(n_steps)
+dates = pd.date_range("1979-01-01", periods=n_steps, freq="MS")
+mu_t = a + b * t + c * t**2
+
+# -----------------------------
+# 3. Simulation déterministe (D=0)
+# -----------------------------
+phi_det = np.zeros(n_steps)
+phi_det[0] = 1.0
+for k in range(1, n_steps):
+    phi_det[k] = phi_det[k-1] - gamma * (phi_det[k-1] - mu_t[k])
+
+det_df = pd.DataFrame({"date": dates, "phi": phi_det})
+det_df["month"] = det_df["date"].dt.month
+det_df["year"] = det_df["date"].dt.year
+det_sept = det_df[det_df["month"] == 9].groupby("year")["phi"].mean()
+
+# -----------------------------
+# 4. Simulations stochastiques (D>0)
+# -----------------------------
+sim_sept, crossing_years = [], []
+for s in range(n_sims):
+    phi = np.zeros(n_steps)
+    phi[0] = 1.0
+    for k in range(1, n_steps):
+        phi[k] = phi[k-1] - gamma * (phi[k-1] - mu_t[k]) + np.sqrt(2*D_stoch) * np.random.randn()
+    sim_df = pd.DataFrame({"date": dates, "phi": phi})
+    sim_df["month"] = sim_df["date"].dt.month
+    sim_df["year"] = sim_df["date"].dt.year
+    sept = sim_df[sim_df["month"] == 9].groupby("year")["phi"].mean()
+    sim_sept.append(sept)
+    below = sept[sept < 0.5]
+    crossing_years.append(below.index[0] if not below.empty else None)
+
+valid_years = [y for y in crossing_years if y is not None]
+median_year = int(np.median(valid_years)) if valid_years else None
+
+print("Années de franchissement stochastiques :", crossing_years)
+print("Année médiane :", median_year)
+
+# -----------------------------
+# 5. Figure de synthèse
+# -----------------------------
+plt.figure(figsize=(14, 7))
+
+# Observations
+sept_obs = data[data["mo"] == 9]
+plt.scatter(sept_obs["date"], sept_obs["phi_star"], color="black", label="Observé (septembre)")
+
+# Trajectoires stochastiques
+for sept in sim_sept:
+    plt.plot(sept.index, sept.values, alpha=0.4, color="steelblue")
+
+# Trajectoire déterministe
+plt.plot(det_sept.index, det_sept.values, color="red", linewidth=2.5, label="Déterministe (D=0)")
+
+# Seuils
+plt.axhline(1.0, color="grey", linestyle="--", label="Climatologie")
+plt.axhline(0.5, color="orange", linestyle="--", label="Seuil critique 0.5")
+
+plt.title("Banquise Arctique — Comparaison déterministe vs stochastique")
+plt.xlabel("Année")
+plt.ylabel("φ*(t) en septembre")
+plt.legend()
+plt.grid(True)
+
+# Inset : histogramme des franchissements stochastiques
+if valid_years:
+    ax_inset = inset_axes(plt.gca(), width="35%", height="35%", loc="upper right")
+    sns.histplot(valid_years, bins=range(min(valid_years), max(valid_years)+1),
+                 ax=ax_inset, color="skyblue", edgecolor="black")
+    ax_inset.axvline(median_year, color="red", linestyle="--", label=f"Médiane {median_year}")
+    ax_inset.set_title("Distribution des franchissements (stochastiques)")
+    ax_inset.set_xlabel("Année")
+    ax_inset.set_ylabel("Fréquence")
+    ax_inset.legend()
+
+plt.tight_layout()
+plt.show()
+
