@@ -1,0 +1,9 @@
+$$
+d\phi_t \;=\; -\gamma \,\big(\phi_t - \mu(t)\big)\, dt \;+\; \sqrt{2D}\, dW_t
+$$
+
+avec
+
+$$
+\mu(t) \;=\; a t^2 + b t + c
+$$
